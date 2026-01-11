@@ -1,0 +1,24 @@
+llibres:
+- titol
+- autor
+- nCopies
+- nDies Prestec
+
+Revistes:
+- Titol
+- Periodicitat
+
+Exemplar (revistes)
+- nExemplar (unico)
+
+Publicacions
+- codi
+
+Prestec
+- identificador usr
+- codi publicacio
+- data prestec
+- data retorn (nDies prestiec + data prestec (llibre), 30 (revistes))
+
+Class Biblioteca:
+gestiona publicacions i prestecs
