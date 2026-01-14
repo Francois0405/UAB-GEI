@@ -1,7 +1,4 @@
 #include "Graf.h"
-#include <iostream>
-#include <iomanip>
-#include <algorithm>
 
 const int Graf::DISTMAX{ numeric_limits<int>::max() };
 
@@ -30,9 +27,7 @@ Graf::Graf(const vector<string>& nodes, const vector<vector<int>>& parelles_node
 	crearMatriu(parelles_nodes, pesos);
 }
 
-Graf::~Graf()
-{
-}
+Graf::~Graf() {}
 
 void Graf::crearMatriu(const vector<vector<int>>& parelles)
 {
@@ -64,17 +59,22 @@ void Graf::crearMatriu(const vector<vector<int>>& parelles, const vector<int>& p
 	}
 }
 
-void Graf::inserirAresta(int posNode1, int posNode2, int pes = 1)
+void Graf::inserirAresta(int posNode1, int posNode2, int pes)
 {
+    if (posNode1 >= m_numNodes || posNode2 >= m_numNodes) {
+        throw runtime_error("Índice de nodo fuera de rango");
+    }
+
     m_matriuAdj[posNode1][posNode2] = pes;
-    m_matriuAdj[posNode2][posNode1] = pes;
+    if (!m_dirigit)
+        m_matriuAdj[posNode2][posNode1] = pes;
 }
 
 void Graf::eliminarAresta(int posNode1, int posNode2)
 {
     m_matriuAdj[posNode1][posNode2] = 0;
     if (!m_dirigit)
-            m_matriuAdj[posNode2][posNode1] = 0;
+        m_matriuAdj[posNode2][posNode1] = 0;
 }
 
 void Graf::afegirNode(const string& node)
@@ -88,7 +88,7 @@ void Graf::afegirNode(const string& node)
     m_numNodes++;
 
     //m_matriuAdj.resize(m_numNodes);
-    for (int i = 0; i < m_numNodes; i++) 
+    for (size_t i = 0; i < m_numNodes; i++) 
         m_matriuAdj[i].push_back(0);
 }
 
@@ -110,11 +110,12 @@ void Graf::eliminarNode(const string& node)
         // a aquest node
         m_matriuAdj.erase(m_matriuAdj.begin() + pos);
 
-        for (int i = 0; i < m_numNodes; i++)
+        m_numNodes--;
+
+        for (size_t i = 0; i < m_numNodes; i++)
         {
             m_matriuAdj[i].erase(m_matriuAdj[i].begin() + pos);
         }
-        m_numNodes--;
     }
 }
 
@@ -164,14 +165,14 @@ vector<vector<int>> Graf::cicles()
 
     for (int i = 0; i < m_matriuAdj.size();i++)
     {
-        for (int j = i+1; j < m_matriuAdj[i].size();j++)
+        for (size_t j = i+1; j < m_matriuAdj[i].size();j++)
         {
             if (m_matriuAdj[i][j] >= 1)
             {
-                for (int vei = j+1; vei < m_numNodes; vei++)
+                for (size_t vei = j+1; vei < m_numNodes; vei++)
                 {
                     if ((m_matriuAdj[vei][i] >= 1) && (m_matriuAdj[vei][j]))
-                        parades_cicles.push_back({ i,j,vei });
+                        parades_cicles.push_back({ i,(int)j,(int)vei });
                 }
             }
         }
@@ -185,7 +186,7 @@ void Graf::DFSRec(size_t pos, vector<string>& recorregut, vector<bool>& visitat)
     {
         visitat[pos] = true;
         recorregut.push_back(m_nodes[pos]);
-        for (int i = 0; i < m_numNodes; i++)
+        for (size_t i = 0; i < m_numNodes; i++)
         {
             if (m_matriuAdj[pos][i] != 0 && visitat[i] == false)
             {
@@ -207,7 +208,7 @@ void Graf::DFSPila(size_t posInicial, vector<string>& recorregut)
         if(!visitat[rec]) {
             recorregut.push_back(m_nodes[rec]);
             visitat[rec] = true;
-            for (int i = 0; i < m_numNodes; i++)
+            for (size_t i = 0; i < m_numNodes; i++)
             {
                 if (m_matriuAdj[rec][i] != 0 && visitat[i] == false)
                 {
@@ -220,13 +221,13 @@ void Graf::DFSPila(size_t posInicial, vector<string>& recorregut)
 
 void Graf::DFS(const string& nodeInicial, vector<string>& recorregut, bool utilitza_recursivitat)
 {
-    size_t posicioInicial = -1;
     auto it = find(m_nodes.begin(), m_nodes.end(), nodeInicial);
-    posicioInicial = distance(m_nodes.begin(), it);
     
-    if (posicioInicial == -1) {
-        throw "No existeix el node " + nodeInicial + " dins del graf.";
+    if (it == m_nodes.end()) {
+        throw runtime_error("No existeix el node " + nodeInicial + " dins del graf.");
     }
+
+    size_t posicioInicial = distance(m_nodes.begin(), it);
 
     if (!utilitza_recursivitat) {
         DFSPila(posicioInicial, recorregut);
